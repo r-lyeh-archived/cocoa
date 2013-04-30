@@ -3,7 +3,7 @@
  * CRC32, GCRC, RS, JS, PJW, ELF, BKDR, SBDM, DJB, DJB2, BP, FNV, AP, BJ1, MH2, SHA1
  * Copyright (c) 2010 Mario 'rlyeh' Rodriguez
 
- * This source file is basetyped on code from Arash Partow (http://www.partow.net)
+ * This source file is based on code from Arash Partow (http://www.partow.net)
  * plus the original and credited authors for each algorithm. Thanks everybody!
 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -694,7 +694,7 @@ namespace cocoa
             return MH2( input, input ? std::strlen(input) : 0, my_hash );
         }
 
-        // Mostly basetyped on Paul E. Jones' sha1 implementation
+        // Mostly based on Paul E. Jones' sha1 implementation
         static hash SHA1( const void *pMem, basetype iLen, hash my_hash = hash( 160, 0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0 ) )
         {
             // if( pMem == 0 || iLen == 0 ) return my_hash;
