@@ -36,13 +36,13 @@
 #pragma once
 
 #include <cassert>
+#include <cstdint>
+#include <cstring>
 
 #include <iomanip>
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include <cstdint>
 
 namespace cocoa
 {
@@ -205,7 +205,7 @@ namespace cocoa
 
         static hash CRC32( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
         {
-            return CRC32( input, input ? strlen(input) : 0, my_hash );
+            return CRC32( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Generalized CRC (less collisions), Bob Jenkins
@@ -275,7 +275,7 @@ namespace cocoa
 
         static hash GCRC( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
         {
-            return GCRC( input, input ? strlen(input) : 0, my_hash );
+            return GCRC( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Robert Sedgwicks
@@ -306,7 +306,7 @@ namespace cocoa
 
         static hash RS( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
         {
-            return RS( input, input ? strlen(input) : 0, my_hash );
+            return RS( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Justin Sobel
@@ -333,7 +333,7 @@ namespace cocoa
 
         static hash JS( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
         {
-            return JS( input, input ? strlen(input) : 0, my_hash );
+            return JS( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // P. J. Weinberger
@@ -371,7 +371,7 @@ namespace cocoa
 
         static hash PJW( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
         {
-            return PJW( input, input ? strlen(input) : 0, my_hash );
+            return PJW( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Tweaked PJW for 32-bit
@@ -405,7 +405,7 @@ namespace cocoa
 
         static hash ELF( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
         {
-            return ELF( input, input ? strlen(input) : 0, my_hash );
+            return ELF( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Brian Kernighan and Dennis Ritchie
@@ -434,7 +434,7 @@ namespace cocoa
 
         static hash BKDR( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
         {
-            return BKDR( input, input ? strlen(input) : 0, my_hash );
+            return BKDR( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Open source SDBM project
@@ -461,7 +461,7 @@ namespace cocoa
 
         static hash SDBM( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
         {
-            return SDBM( input, input ? strlen(input) : 0, my_hash );
+            return SDBM( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Daniel J. Bernstein
@@ -488,7 +488,7 @@ namespace cocoa
 
         static hash DJB( const char *input = (const char *)0, hash my_hash = hash( 32, 5381 ) )
         {
-            return DJB( input, input ? strlen(input) : 0, my_hash );
+            return DJB( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Daniel J. Bernstein (2)
@@ -515,7 +515,7 @@ namespace cocoa
 
         static hash DJB2( const char *input = (const char *)0, hash my_hash = hash( 32, 5381 ) )
         {
-            return DJB2( input, input ? strlen(input) : 0, my_hash );
+            return DJB2( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // ?
@@ -542,7 +542,7 @@ namespace cocoa
 
         static hash BP( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
         {
-            return BP( input, input ? strlen(input) : 0, my_hash );
+            return BP( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Fowler-Noll-Vo
@@ -572,7 +572,7 @@ namespace cocoa
 
         static hash FNV( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
         {
-            return FNV( input, input ? strlen(input) : 0, my_hash );
+            return FNV( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Arash Partow
@@ -600,7 +600,7 @@ namespace cocoa
 
         static hash AP( const char *input = (const char *)0, hash my_hash = hash( 32, 0xAAAAAAAA ) )
         {
-            return AP( input, input ? strlen(input) : 0, my_hash );
+            return AP( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Bob Jenkins (one-at-a-time)
@@ -633,7 +633,7 @@ namespace cocoa
 
         static hash BJ1( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
         {
-            return BJ1( input, input ? strlen(input) : 0, my_hash );
+            return BJ1( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Murmurmy_Hash2 by Austin Appleby
@@ -691,7 +691,7 @@ namespace cocoa
 
         static hash MH2( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
         {
-            return MH2( input, input ? strlen(input) : 0, my_hash );
+            return MH2( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Mostly basetyped on Paul E. Jones' sha1 implementation
@@ -897,7 +897,7 @@ namespace cocoa
 
         static hash SHA1( const char *input = (const char *)0, hash my_hash = hash( 160, 0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0 ) )
         {
-            return SHA1( input, input ? strlen(input) : 0, my_hash );
+            return SHA1( input, input ? std::strlen(input) : 0, my_hash );
         }
     };
 }
