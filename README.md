@@ -15,12 +15,14 @@ cocoa::hash()
 Sample
 ------
 <pre>
+#include &lt;cassert&gt;
 #include &lt;string&gt;
 #include "cocoa.hpp"
 
 int main() {
     std::string hash = cocoa::SHA1("hello world");
-    std::cout << hash << std::endl;
+    std::cout &lt;&lt; hash &lt;&lt; std::endl;
+    assert( cocoa::SHA1("hello world") == cocoa::SHA1("hello world") );
     return 0;
 }
 </pre>
