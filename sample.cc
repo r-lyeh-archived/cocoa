@@ -18,14 +18,15 @@ int main( int argc, const char **argv )
     std::cout << " 6. SDBM-Hash Function Value:  " << cocoa::SDBM( key )  << std::endl;
     std::cout << " 7. DJB-Hash Function Value:   " << cocoa::DJB( key )   << std::endl;
     std::cout << " 8. FNV-Hash Function Value:   " << cocoa::FNV( key )   << std::endl;
-    std::cout << " 9. BP-Hash Function Value:    " << cocoa::BP( key )    << std::endl;
-    std::cout << "10. AP-Hash Function Value:    " << cocoa::AP( key )    << std::endl;
-    std::cout << "11. CRC32-Hash Function Value: " << cocoa::CRC32( key ) << std::endl;
-    std::cout << "12. CRC64-Hash Function Value: " << cocoa::CRC64( key ) << std::endl;
-    std::cout << "13. MH2-Hash Function Value:   " << cocoa::MH2( key )   << std::endl;
-    std::cout << "14. BJ1-Hash Function Value:   " << cocoa::BJ1( key )   << std::endl;
-    std::cout << "15. CRC-Hash Function Value:   " << cocoa::GCRC( key )  << std::endl;
-    std::cout << "16. SHA1-Hash Function Value:  " << cocoa::SHA1( key )  << std::endl;
+    std::cout << " 9. FNV1a-Hash Function Value: " << cocoa::FNV1a( key ) << std::endl;
+    std::cout << "10. BP-Hash Function Value:    " << cocoa::BP( key )    << std::endl;
+    std::cout << "11. AP-Hash Function Value:    " << cocoa::AP( key )    << std::endl;
+    std::cout << "12. CRC32-Hash Function Value: " << cocoa::CRC32( key ) << std::endl;
+    std::cout << "13. CRC64-Hash Function Value: " << cocoa::CRC64( key ) << std::endl;
+    std::cout << "14. MH2-Hash Function Value:   " << cocoa::MH2( key )   << std::endl;
+    std::cout << "15. BJ1-Hash Function Value:   " << cocoa::BJ1( key )   << std::endl;
+    std::cout << "16. CRC-Hash Function Value:   " << cocoa::GCRC( key )  << std::endl;
+    std::cout << "17. SHA1-Hash Function Value:  " << cocoa::SHA1( key )  << std::endl;
 
     // a few tests from http://www.nitrxgen.net/hashgen/ (thanks guys!)
     assert( cocoa::CRC32("hello world").blob().size() == 4 );
