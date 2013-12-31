@@ -1,6 +1,6 @@
 /*
  * Cocoa, an amalgamation of hashing algorithms.
- * CRC32, CRC64, GCRC, RS, JS, PJW, ELF, BKDR, SBDM, DJB, DJB2, BP, FNV, AP, BJ1, MH2, SHA1
+ * CRC32, CRC64, GCRC, RS, JS, PJW, ELF, BKDR, SBDM, DJB, DJB2, BP, FNV, FNV1a, AP, BJ1, MH2, SHA1
  * Copyright (c) 2010,2011,2012,2013 Mario 'rlyeh' Rodriguez
 
  * This source file is based on code from Arash Partow (http://www.partow.net)
@@ -662,14 +662,14 @@ namespace cocoa
         }
 
         // Fowler-Noll-Vo
-        static hash FNV( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0 ) )
+        static hash FNV( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0x811C9DC5 ) )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
             const unsigned char *pPtr = (const unsigned char *)pMem;
             basetype &h = my_hash[0];
 
-            const basetype fnv_prime = 0x811C9DC5;
+            const basetype fnv_prime = 0x1000193;
 
             while( iLen-- )
             {
@@ -681,14 +681,44 @@ namespace cocoa
         }
 
         template< typename T >
-        static hash FNV( const T &input, hash my_hash = hash( 32, 0 ) )
+        static hash FNV( const T &input, hash my_hash = hash( 32, 0x811C9DC5 ) )
         {
             return FNV( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
         }
 
-        static hash FNV( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
+        static hash FNV( const char *input = (const char *)0, hash my_hash = hash( 32, 0x811C9DC5 ) )
         {
             return FNV( input, input ? std::strlen(input) : 0, my_hash );
+        }
+
+        // Fowler-Noll-Vo-1a
+        static hash FNV1a( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0x811C9DC5 ) )
+        {
+            if( pMem == 0 || iLen == 0 ) return my_hash;
+
+            const unsigned char *pPtr = (const unsigned char *)pMem;
+            basetype &h = my_hash[0];
+
+            const basetype fnv_prime = 0x1000193;
+
+            while( iLen-- )
+            {
+                h ^= ((basetype) (*pPtr++));
+                h *= fnv_prime;
+            }
+
+            return my_hash;
+        }
+
+        template< typename T >
+        static hash FNV1a( const T &input, hash my_hash = hash( 32, 0x811C9DC5 ) )
+        {
+            return FNV1a( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
+        }
+
+        static hash FNV1a( const char *input = (const char *)0, hash my_hash = hash( 32, 0x811C9DC5 ) )
+        {
+            return FNV1a( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Arash Partow
@@ -1069,8 +1099,12 @@ namespace cocoa
         return hash::BP( input, my_hash );
     }
     template< typename T >
-    inline hash FNV( const T &input, hash my_hash = hash( 32, 0 ) ) {
+    inline hash FNV( const T &input, hash my_hash = hash( 32, 0x811C9DC5 ) ) {
         return hash::FNV( input, my_hash );
+    }
+    template< typename T >
+    inline hash FNV1a( const T &input, hash my_hash = hash( 32, 0x811C9DC5 ) ) {
+        return hash::FNV1a( input, my_hash );
     }
     template< typename T >
     inline hash AP( const T &input, hash my_hash = hash( 32, 0xAAAAAAAA ) ) {
