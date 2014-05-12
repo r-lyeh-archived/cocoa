@@ -1,7 +1,7 @@
 /*
  * Cocoa, an amalgamation of hashing algorithms.
- * CRC32, CRC64, GCRC, RS, JS, PJW, ELF, BKDR, SBDM, DJB, DJB2, BP, FNV, FNV1a, AP, BJ1, MH2, SHA1
- * Copyright (c) 2010,2011,2012,2013 Mario 'rlyeh' Rodriguez
+ * CRC32, CRC64, GCRC, RS, JS, PJW, ELF, BKDR, SBDM, DJB, DJB2, BP, FNV, FNV1a, AP, BJ1, MH2, SHA1, SFH
+ * Copyright (c) 2010,2011,2012,2013,2014 Mario 'rlyeh' Rodriguez
 
  * This source file is based on code from Arash Partow (http://www.partow.net)
  * plus the original and credited authors for each algorithm. Thanks everybody!
@@ -826,7 +826,7 @@ namespace cocoa
             h *= m;
             h ^= h >> 15;
 
-            return hash( 32, h);
+            return hash( 32, h );
         }
 
         template< typename T >
@@ -838,6 +838,78 @@ namespace cocoa
         static hash MH2( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
         {
             return MH2( input, input ? std::strlen(input) : 0, my_hash );
+        }
+
+        // SuperFastHash by Paul Hsieh
+        static hash SFH( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0 ) )
+        {
+            if( pMem == 0 || iLen == 0 ) return my_hash;
+
+#           undef get16bits
+#           if (defined(__GNUC__) && defined(__i386__)) || defined(__WATCOMC__) \
+                    || defined(_MSC_VER) || defined (__BORLANDC__) || defined (__TURBOC__)
+#               define get16bits(d) (*((const uint16_t *) (d)))
+#           else
+#               define get16bits(d) ((((uint32_t)(((const uint8_t *)(d))[1])) << 8)\
+                                       +(uint32_t)(((const uint8_t *)(d))[0]) )
+#           endif
+
+            std::uint32_t tmp;
+            int rem;
+
+            rem = iLen & 3;
+            iLen >>= 2;
+
+            const char * data = (const char *)pMem;
+            basetype &h = my_hash[0];
+
+            /* Main loop */
+            for (;iLen > 0; iLen--) {
+                   h += get16bits (data);
+                 tmp  = (get16bits (data+2) << 11) ^ h;
+                   h  = (h << 16) ^ tmp;
+                data += 2*sizeof (uint16_t);
+                   h += h >> 11;
+            }
+
+            /* Handle end cases */
+            switch (rem) { default:
+                case 3: h += get16bits (data);
+                        h ^= h << 16;
+                        h ^= ((signed char)data[sizeof (uint16_t)]) << 18;
+                        h += h >> 11;
+                        break;
+                case 2: h += get16bits (data);
+                        h ^= h << 11;
+                        h += h >> 17;
+                        break;
+                case 1: h += (signed char)*data;
+                        h ^= h << 10;
+                        h += h >> 1;
+            }
+
+            /* Force "avalanching" of final 127 bits */
+            h ^= h << 3;
+            h += h >> 5;
+            h ^= h << 4;
+            h += h >> 17;
+            h ^= h << 25;
+            h += h >> 6;
+
+            return hash( 32, h );
+
+#           undef get16bits
+        }
+
+        template< typename T >
+        static hash SFH( const T &input, hash my_hash = hash( 32, 0 ) )
+        {
+            return SFH( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
+        }
+
+        static hash SFH( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
+        {
+            return SFH( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Mostly based on Paul E. Jones' sha1 implementation
@@ -1045,6 +1117,14 @@ namespace cocoa
         {
             return SHA1( input, input ? std::strlen(input) : 0, my_hash );
         }
+
+        // ostream
+
+        template<typename ostream>
+        inline friend ostream &operator<<( ostream &os, const hash &self )
+        {
+            return (os << self.str()), os;
+        }
     };
 }
 
@@ -1122,8 +1202,8 @@ namespace cocoa
     inline hash SHA1( const T &input, hash my_hash = hash( 160, 0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0 ) ) {
         return hash::SHA1( input, my_hash );
     }
+    template< typename T >
+    inline hash SFH( const T &input, hash my_hash = hash( 32, 0 ) ) {
+        return hash::SFH( input, my_hash );
+    }
 }
-
-#include <iostream>
-
-std::ostream &operator<<( std::ostream &os, const cocoa::hash &h );

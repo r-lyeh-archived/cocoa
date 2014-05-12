@@ -27,6 +27,7 @@ int main( int argc, const char **argv )
     std::cout << "15. BJ1-Hash Function Value:   " << cocoa::BJ1( key )   << std::endl;
     std::cout << "16. CRC-Hash Function Value:   " << cocoa::GCRC( key )  << std::endl;
     std::cout << "17. SHA1-Hash Function Value:  " << cocoa::SHA1( key )  << std::endl;
+    std::cout << "18. SFH-Hash Function Value:   " << cocoa::SFH( key )  << std::endl;
 
     // a few tests from http://www.nitrxgen.net/hashgen/ (thanks guys!)
     assert( cocoa::CRC32("hello world").blob().size() == 4 );
