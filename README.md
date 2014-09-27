@@ -6,7 +6,7 @@ cocoa
 - Tiny. Header-only.
 - Cross-platform.
 - No dependencies.
-- MIT licensed.
+- BOOST licensed.
 
 cocoa::hash()
 -------------
