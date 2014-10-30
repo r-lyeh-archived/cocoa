@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <stddef.h>
+
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -50,137 +52,26 @@ namespace cocoa
     typedef std::uint32_t basetype;
     enum { basebits = sizeof(basetype) * 8 };
 
-    class hash
-    {
-        std::vector<basetype> h;
+    struct use {
+        using hash = std::vector<basetype>;
 
-        public:
-
-        explicit
-        hash( basetype bits ) : h(bits/basebits, 0)
-        {}
-
-        hash( basetype bits, const basetype &A ): h(bits/basebits)
-        { h[0] = A; }
-
-        hash( basetype bits, const basetype &A, const basetype &B ): h(bits/basebits)
-        { h[0] = A, h[1] = B; }
-
-        hash( basetype bits, const basetype &A, const basetype &B, const basetype &C ): h(bits/basebits)
-        { h[0] = A, h[1] = B, h[2] = C; }
-
-        hash( basetype bits, const basetype &A, const basetype &B, const basetype &C, const basetype &D ): h(bits/basebits)
-        { h[0] = A, h[1] = B, h[2] = C, h[3] = D; }
-
-        hash( basetype bits, const basetype &A, const basetype &B, const basetype &C, const basetype &D, const basetype &E ): h(bits/basebits)
-        { h[0] = A, h[1] = B, h[2] = C, h[3] = D, h[4] = E; }
+        enum enumeration {
+            CRC32,CRC64,GCRC,RS,JS,PJW,ELF,BKDR,SDBM,DJB,DJB2,BP,FNV,FNV1a,AP,BJ1,MH2,SHA1,SFH
+        };
 
         static
-        const bool is_little_endian() {
+        bool is_little_endian() {
             const long endian = 1;
             return ((char*)&endian)[0] > 0;
         }
 
         static
-        const bool is_big_endian() {
+        bool is_big_endian() {
             return !is_little_endian();
         }
 
-        inline basetype &operator []( basetype i )
-        {
-            return h[i];
-        }
-        inline const basetype &operator []( basetype i ) const
-        {
-            return h[i];
-        }
-
-        inline const bool operator ==( const hash &t ) const
-        {
-            return h == t.h;
-        }
-
-        inline const bool operator !=( const hash &t ) const
-        {
-            return h != t.h;
-        }
-
-        inline const bool operator<( const hash &t ) const
-        {
-            return h < t.h;
-        }
-
-        inline const bool operator ==( const std::string &t ) const
-        {
-            return str() == t;
-        }
-
-        inline const bool operator<( const std::string &t ) const
-        {
-            return str() < t;
-        }
-
-        size_t size() const
-        {
-            return h.size();
-        }
-
-        const void *data() const
-        {
-            return h.data();
-        }
-
-        void *data()
-        {
-            return h.data();
-        }
-
-        std::vector<basetype>::iterator begin() { return h.begin(); }
-        std::vector<basetype>::iterator   end() { return h.end(); }
-        std::vector<basetype>::const_iterator begin() const { return h.begin(); }
-        std::vector<basetype>::const_iterator   end() const { return h.end(); }
-
-        operator std::string() const
-        {
-            return str();
-        }
-
-        std::string str() const
-        {
-            std::string out;
-
-            for( std::vector<basetype>::const_iterator it = h.begin(); it != h.end(); ++it )
-            {
-                std::stringstream ss;
-                std::string s;
-                ss << std::hex << std::setfill('0') << std::setw(8) << (*it);
-                ss >> s;
-                out += s;
-            }
-
-            return out;
-        }
-
-        std::vector<unsigned char> blob() const
-        {
-            std::vector<unsigned char> blob;
-
-            if( is_big_endian() )
-                for( std::vector<basetype>::const_iterator it = h.begin(); it != h.end(); ++it )
-                    for( unsigned i = 0; i < sizeof(basetype); ++i )
-                        blob.push_back( ( (*it) >> (i * 8) ) & 0xff );
-            else
-                for( std::vector<basetype>::const_iterator it = h.begin(); it != h.end(); ++it )
-                    for( unsigned i = sizeof(basetype); i-- > 0; )
-                        blob.push_back( ( (*it) >> (i * 8) ) & 0xff );
-
-            return blob;
-        }
-
-        public:
-
-        // CRC32
-        static hash CRC32( const void *pMem, size_t iLen, hash my_hash = hash(32,0) )
+       // CRC32
+        static hash fCRC32( const void *pMem, size_t iLen, hash my_hash = { 0 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -202,22 +93,11 @@ namespace cocoa
                 h = crcTable[h & 0x0f] ^ (h >> 4);
             }
 
-            return hash( 32, ~h );
-        }
-
-        template< typename T >
-        static hash CRC32( const T &input, hash my_hash = hash( 32, 0 ) )
-        {
-            return CRC32( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash CRC32( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
-        {
-            return CRC32( input, input ? std::strlen(input) : 0, my_hash );
+            return { ~h };
         }
 
         // CRC64-ECMA
-        static hash CRC64( const void *pMem, size_t iLen, hash my_hash = hash(64,0) )
+        static hash fCRC64( const void *pMem, size_t iLen, hash my_hash = { 0, 0 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -308,24 +188,13 @@ namespace cocoa
             h = ~h;
 
             if( is_little_endian() )
-                return hash( 64, ( h >> 32 ) & 0xFFFFFFFF, h & 0xFFFFFFFF );
+                return { ( h >> 32 ) & 0xFFFFFFFF, h & 0xFFFFFFFF };
             else
-                return hash( 64, h & 0xFFFFFFFF, ( h >> 32 ) & 0xFFFFFFFF );
-        }
-
-        template< typename T >
-        static hash CRC64( const T &input, hash my_hash = hash( 64, 0 ) )
-        {
-            return CRC64( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash CRC64( const char *input = (const char *)0, hash my_hash = hash( 64, 0 ) )
-        {
-            return CRC64( input, input ? std::strlen(input) : 0, my_hash );
+                return { h & 0xFFFFFFFF, ( h >> 32 ) & 0xFFFFFFFF };
         }
 
         // Generalized CRC (less collisions), Bob Jenkins
-        static hash GCRC( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0 ) )
+        static hash fGCRC( const void *pMem, size_t iLen, hash my_hash = { 0 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -380,22 +249,11 @@ namespace cocoa
                 h = (h >> 8) ^ crcTable[ (h ^ (*pPtr++)) & 0xFF ];
             }
 
-            return hash( 32,  h ^ 0xFFFFFFFF );
-        }
-
-        template< typename T >
-        static hash GCRC( const T &input, hash my_hash = hash( 32, 0 ) )
-        {
-            return GCRC( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash GCRC( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
-        {
-            return GCRC( input, input ? std::strlen(input) : 0, my_hash );
+            return { h ^ 0xFFFFFFFF };
         }
 
         // Robert Sedgwicks
-        static hash RS( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0 ) )
+        static hash fRS( const void *pMem, size_t iLen, hash my_hash = { 0 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -414,19 +272,8 @@ namespace cocoa
             return my_hash;
         }
 
-        template< typename T >
-        static hash RS( const T &input, hash my_hash = hash( 32, 0 ) )
-        {
-            return RS( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash RS( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
-        {
-            return RS( input, input ? std::strlen(input) : 0, my_hash );
-        }
-
         // Justin Sobel
-        static hash JS( const void *pMem, size_t iLen, hash my_hash = hash( 32, 1315423911 ) )
+        static hash fJS( const void *pMem, size_t iLen, hash my_hash = { 1315423911 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -441,19 +288,8 @@ namespace cocoa
             return my_hash;
         }
 
-        template< typename T >
-        static hash JS( const T &input, hash my_hash = hash( 32, 0 ) )
-        {
-            return JS( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash JS( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
-        {
-            return JS( input, input ? std::strlen(input) : 0, my_hash );
-        }
-
         // P. J. Weinberger
-        static hash PJW( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0 ) )
+        static hash fPJW( const void *pMem, size_t iLen, hash my_hash = { 0 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -479,19 +315,8 @@ namespace cocoa
             return my_hash;
         }
 
-        template< typename T >
-        static hash PJW( const T &input, hash my_hash = hash( 32, 0 ) )
-        {
-            return PJW( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash PJW( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
-        {
-            return PJW( input, input ? std::strlen(input) : 0, my_hash );
-        }
-
         // Tweaked PJW for 32-bit
-        static hash ELF( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0 ) )
+        static hash fELF( const void *pMem, size_t iLen, hash my_hash = { 0 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -513,19 +338,8 @@ namespace cocoa
             return my_hash;
         }
 
-        template< typename T >
-        static hash ELF( const T &input, hash my_hash = hash( 32, 0 ) )
-        {
-            return ELF( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash ELF( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
-        {
-            return ELF( input, input ? std::strlen(input) : 0, my_hash );
-        }
-
         // Brian Kernighan and Dennis Ritchie
-        static hash BKDR( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0 ) )
+        static hash fBKDR( const void *pMem, size_t iLen, hash my_hash = { 0 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -542,19 +356,8 @@ namespace cocoa
             return my_hash;
         }
 
-        template< typename T >
-        static hash BKDR( const T &input, hash my_hash = hash( 32, 0 ) )
-        {
-            return BKDR( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash BKDR( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
-        {
-            return BKDR( input, input ? std::strlen(input) : 0, my_hash );
-        }
-
         // Open source SDBM project
-        static hash SDBM( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0 ) )
+        static hash fSDBM( const void *pMem, size_t iLen, hash my_hash = { 0 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -569,19 +372,8 @@ namespace cocoa
             return my_hash;
         }
 
-        template< typename T >
-        static hash SDBM( const T &input, hash my_hash = hash( 32, 0 ) )
-        {
-            return SDBM( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash SDBM( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
-        {
-            return SDBM( input, input ? std::strlen(input) : 0, my_hash );
-        }
-
         // Daniel J. Bernstein
-        static hash DJB( const void *pMem, size_t iLen, hash my_hash = hash( 32, 5381 ) ) //seed=0
+        static hash fDJB( const void *pMem, size_t iLen, hash my_hash = { 5381 } ) //seed=0
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -596,19 +388,8 @@ namespace cocoa
             return my_hash;
         }
 
-        template< typename T >
-        static hash DJB( const T &input, hash my_hash = hash( 32, 5381 ) )
-        {
-            return DJB( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash DJB( const char *input = (const char *)0, hash my_hash = hash( 32, 5381 ) )
-        {
-            return DJB( input, input ? std::strlen(input) : 0, my_hash );
-        }
-
         // Daniel J. Bernstein (2)
-        static hash DJB2( const void *pMem, size_t iLen, hash my_hash = hash( 32, 5381 ) ) //seed=0
+        static hash fDJB2( const void *pMem, size_t iLen, hash my_hash = { 5381 } ) //seed=0
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -623,19 +404,8 @@ namespace cocoa
             return my_hash;
         }
 
-        template< typename T >
-        static hash DJB2( const T &input, hash my_hash = hash( 32, 5381 ) )
-        {
-            return DJB2( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash DJB2( const char *input = (const char *)0, hash my_hash = hash( 32, 5381 ) )
-        {
-            return DJB2( input, input ? std::strlen(input) : 0, my_hash );
-        }
-
         // ?
-        static hash BP( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0 ) )
+        static hash fBP( const void *pMem, size_t iLen, hash my_hash = { 0 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -650,19 +420,8 @@ namespace cocoa
             return my_hash;
         }
 
-        template< typename T >
-        static hash BP( const T &input, hash my_hash = hash( 32, 0 ) )
-        {
-            return BP( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash BP( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
-        {
-            return BP( input, input ? std::strlen(input) : 0, my_hash );
-        }
-
         // Fowler-Noll-Vo
-        static hash FNV( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0x811C9DC5 ) )
+        static hash fFNV( const void *pMem, size_t iLen, hash my_hash = { 0x811C9DC5 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -678,21 +437,10 @@ namespace cocoa
             }
 
             return my_hash;
-        }
-
-        template< typename T >
-        static hash FNV( const T &input, hash my_hash = hash( 32, 0x811C9DC5 ) )
-        {
-            return FNV( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash FNV( const char *input = (const char *)0, hash my_hash = hash( 32, 0x811C9DC5 ) )
-        {
-            return FNV( input, input ? std::strlen(input) : 0, my_hash );
         }
 
         // Fowler-Noll-Vo-1a
-        static hash FNV1a( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0x811C9DC5 ) )
+        static hash fFNV1a( const void *pMem, size_t iLen, hash my_hash = { 0x811C9DC5 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -710,19 +458,8 @@ namespace cocoa
             return my_hash;
         }
 
-        template< typename T >
-        static hash FNV1a( const T &input, hash my_hash = hash( 32, 0x811C9DC5 ) )
-        {
-            return FNV1a( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash FNV1a( const char *input = (const char *)0, hash my_hash = hash( 32, 0x811C9DC5 ) )
-        {
-            return FNV1a( input, input ? std::strlen(input) : 0, my_hash );
-        }
-
         // Arash Partow
-        static hash AP( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0xAAAAAAAA ) )
+        static hash fAP( const void *pMem, size_t iLen, hash my_hash = { 0xAAAAAAAA } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -731,26 +468,15 @@ namespace cocoa
 
             for( size_t i = 0; i < iLen; i++ )
             {
-                h ^= ((i & 1) == 0) ? 	(  (h <<  7) ^ ((basetype) (*pPtr++)) * (h >> 3)) :
+                h ^= ((i & 1) == 0) ?   (  (h <<  7) ^ ((basetype) (*pPtr++)) * (h >> 3)) :
                                         (~((h << 11) + ((basetype) (*pPtr++)) ^ (h >> 5)));
             }
 
             return my_hash;
         }
 
-        template< typename T >
-        static hash AP( const T &input, hash my_hash = hash( 32, 0xAAAAAAAA ) )
-        {
-            return AP( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash AP( const char *input = (const char *)0, hash my_hash = hash( 32, 0xAAAAAAAA ) )
-        {
-            return AP( input, input ? std::strlen(input) : 0, my_hash );
-        }
-
         // Bob Jenkins (one-at-a-time)
-        static hash BJ1( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0 ) )
+        static hash fBJ1( const void *pMem, size_t iLen, hash my_hash = { 0 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -771,19 +497,8 @@ namespace cocoa
             return my_hash;
         }
 
-        template< typename T >
-        static hash BJ1( const T &input, hash my_hash = hash( 32, 0 ) )
-        {
-            return BJ1( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash BJ1( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
-        {
-            return BJ1( input, input ? std::strlen(input) : 0, my_hash );
-        }
-
         // Murmurmy_Hash2 by Austin Appleby
-        static hash MH2( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0 ) )
+        static hash fMH2( const void *pMem, size_t iLen, hash my_hash = { 0 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -826,22 +541,11 @@ namespace cocoa
             h *= m;
             h ^= h >> 15;
 
-            return hash( 32, h );
-        }
-
-        template< typename T >
-        static hash MH2( const T &input, hash my_hash = hash( 32, 0 ) )
-        {
-            return MH2( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash MH2( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
-        {
-            return MH2( input, input ? std::strlen(input) : 0, my_hash );
+            return { h };
         }
 
         // SuperFastHash by Paul Hsieh
-        static hash SFH( const void *pMem, size_t iLen, hash my_hash = hash( 32, 0 ) )
+        static hash fSFH( const void *pMem, size_t iLen, hash my_hash = hash { 0 } )
         {
             if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -896,24 +600,13 @@ namespace cocoa
             h ^= h << 25;
             h += h >> 6;
 
-            return hash( 32, h );
+            return { h };
 
 #           undef get16bits
         }
 
-        template< typename T >
-        static hash SFH( const T &input, hash my_hash = hash( 32, 0 ) )
-        {
-            return SFH( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
-        }
-
-        static hash SFH( const char *input = (const char *)0, hash my_hash = hash( 32, 0 ) )
-        {
-            return SFH( input, input ? std::strlen(input) : 0, my_hash );
-        }
-
         // Mostly based on Paul E. Jones' sha1 implementation
-        static hash SHA1( const void *pMem, basetype iLen, hash my_hash = hash( 160, 0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0 ) )
+        static hash fSHA1( const void *pMem, basetype iLen, hash my_hash = hash{ 0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0 } )
         {
             // if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -1106,17 +799,142 @@ namespace cocoa
 
             return my_hash;
         }
+ 
+        // general interface
 
-        template< typename T >
-        static hash SHA1( const T &input, hash my_hash = hash( 160, 0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0 ) )
-        {
-            return SHA1( input.data(), input.size() * sizeof( *input.begin() ), my_hash );
+        static hash any( int FN, hash &h, const void *ptr, size_t len ) {
+            /**/ if( FN == use::CRC32 ) return h = cocoa::use::fCRC32(ptr, len, h);
+            else if( FN == use::CRC64 ) return h = cocoa::use::fCRC64(ptr, len, h);
+            else if( FN == use::GCRC  ) return h = cocoa::use::fGCRC(ptr, len, h);
+            else if( FN == use::RS    ) return h = cocoa::use::fRS(ptr, len, h);
+            else if( FN == use::JS    ) return h = cocoa::use::fJS(ptr, len, h);
+            else if( FN == use::PJW   ) return h = cocoa::use::fPJW(ptr, len, h);
+            else if( FN == use::ELF   ) return h = cocoa::use::fELF(ptr, len, h);
+            else if( FN == use::BKDR  ) return h = cocoa::use::fBKDR(ptr, len, h);
+            else if( FN == use::SDBM  ) return h = cocoa::use::fSDBM(ptr, len, h);
+            else if( FN == use::DJB   ) return h = cocoa::use::fDJB(ptr, len, h);
+            else if( FN == use::DJB2  ) return h = cocoa::use::fDJB2(ptr, len, h);
+            else if( FN == use::BP    ) return h = cocoa::use::fBP(ptr, len, h);
+            else if( FN == use::FNV   ) return h = cocoa::use::fFNV(ptr, len, h);
+            else if( FN == use::FNV1a ) return h = cocoa::use::fFNV1a(ptr, len, h);
+            else if( FN == use::AP    ) return h = cocoa::use::fAP(ptr, len, h);
+            else if( FN == use::BJ1   ) return h = cocoa::use::fBJ1(ptr, len, h);
+            else if( FN == use::MH2   ) return h = cocoa::use::fMH2(ptr, len, h);
+            else if( FN == use::SHA1  ) return h = cocoa::use::fSHA1(ptr, len, h);
+            else if( FN == use::SFH   ) return h = cocoa::use::fSFH(ptr, len, h);
+            return h;
+        }
+    };
+
+    template<int FN>
+    class hash
+    {
+        std::vector<basetype> h;
+
+        public:
+
+        hash() : h( 1, 0 ) {
+            /**/ if( FN == cocoa::use::DJB) h[0] = 5381;
+            else if( FN == cocoa::use::DJB2) h[0] = 5381;
+            else if( FN == cocoa::use::FNV) h[0] = 0x811C9DC5;
+            else if( FN == cocoa::use::FNV1a) h[0] = 0x811C9DC5;
+            else if( FN == cocoa::use::AP) h[0] = 0xAAAAAAAA;
+            else if( FN == cocoa::use::CRC64) h = { 0, 0 };
+            else if( FN == cocoa::use::SHA1) h = { 0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0 };
         }
 
-        static hash SHA1( const char *input = (const char *)0, hash my_hash = hash( 160, 0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0 ) )
+        inline basetype &operator []( basetype i )
         {
-            return SHA1( input, input ? std::strlen(input) : 0, my_hash );
+            return h[i];
         }
+        inline const basetype &operator []( basetype i ) const
+        {
+            return h[i];
+        }
+
+        inline bool operator ==( const hash &t ) const
+        {
+            return h == t.h;
+        }
+
+        inline bool operator !=( const hash &t ) const
+        {
+            return h != t.h;
+        }
+
+        inline bool operator<( const hash &t ) const
+        {
+            return h < t.h;
+        }
+
+        inline bool operator ==( const std::string &t ) const
+        {
+            return str() == t;
+        }
+
+        inline const bool operator<( const std::string &t ) const
+        {
+            return str() < t;
+        }
+
+        size_t size() const
+        {
+            return h.size();
+        }
+
+        const void *data() const
+        {
+            return h.data();
+        }
+
+        void *data()
+        {
+            return h.data();
+        }
+
+        std::vector<basetype>::iterator begin() { return h.begin(); }
+        std::vector<basetype>::iterator   end() { return h.end(); }
+        std::vector<basetype>::const_iterator begin() const { return h.begin(); }
+        std::vector<basetype>::const_iterator   end() const { return h.end(); }
+
+        operator std::string() const
+        {
+            return str();
+        }
+
+        std::string str() const
+        {
+            std::string out;
+
+            for( std::vector<basetype>::const_iterator it = h.begin(); it != h.end(); ++it )
+            {
+                std::stringstream ss;
+                std::string s;
+                ss << std::hex << std::setfill('0') << std::setw(8) << (*it);
+                ss >> s;
+                out += s;
+            }
+
+            return out;
+        }
+
+        std::vector<unsigned char> blob() const
+        {
+            std::vector<unsigned char> blob;
+
+            if( use::is_big_endian() )
+                for( std::vector<basetype>::const_iterator it = h.begin(); it != h.end(); ++it )
+                    for( unsigned i = 0; i < sizeof(basetype); ++i )
+                        blob.push_back( ( (*it) >> (i * 8) ) & 0xff );
+            else
+                for( std::vector<basetype>::const_iterator it = h.begin(); it != h.end(); ++it )
+                    for( unsigned i = sizeof(basetype); i-- > 0; )
+                        blob.push_back( ( (*it) >> (i * 8) ) & 0xff );
+
+            return blob;
+        }
+
+        public:
 
         // ostream
 
@@ -1125,85 +943,119 @@ namespace cocoa
         {
             return (os << self.str()), os;
         }
+
+        // chain hasher
+
+        template<typename T>
+        hash &operator()( const T &input ) {
+            return h = use::any( FN, h, input.data(), input.size() * sizeof( *input.begin() ) ), *this;
+        }
+
+        hash &operator()( const char *input = (const char *)0 ) {
+            return h = use::any( FN, h, input, input ? std::strlen(input) : 0 ), *this;
+        }
+        hash &operator()( const char &input ) {
+            return h = use::any( FN, h, &input, sizeof(input) ), *this;
+        }
+        hash &operator()( const int &input ) {
+            return h = use::any( FN, h, &input, sizeof(input) ), *this;
+        }
+        hash &operator()( const size_t &input ) {
+            return h = use::any( FN, h, &input, sizeof(input) ), *this;
+        }
+        hash &operator()( const float &input ) {
+            return h = use::any( FN, h, &input, sizeof(input) ), *this;
+        }
+        hash &operator()( const double &input ) {
+            return h = use::any( FN, h, &input, sizeof(input) ), *this;
+        }
+
+        template<typename T, typename... Args>
+        hash &operator()(const T &value, Args... args) {
+            this->operator()( value );
+            this->operator()(args...);
+            return *this;
+        }
+
     };
 }
 
 namespace cocoa
 {
     template< typename T >
-    inline hash CRC32( const T &input, hash my_hash = hash( 32, 0 ) ) {
-        return hash::CRC32( input, my_hash );
+    inline hash<cocoa::use::CRC32> CRC32( const T &input, hash<cocoa::use::CRC32> &my_hash = hash<cocoa::use::CRC32>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash CRC64( const T &input, hash my_hash = hash( 64, 0 ) ) {
-        return hash::CRC64( input, my_hash );
+    inline hash<cocoa::use::CRC64> CRC64( const T &input, hash<cocoa::use::CRC64> &my_hash = hash<cocoa::use::CRC64>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash GCRC( const T &input, hash my_hash = hash( 32, 0 ) ) {
-        return hash::GCRC( input, my_hash );
+    inline hash<cocoa::use::GCRC> GCRC( const T &input, hash<cocoa::use::GCRC> &my_hash = hash<cocoa::use::GCRC>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash RS( const T &input, hash my_hash = hash( 32, 0 ) ) {
-        return hash::RS( input, my_hash );
+    inline hash<cocoa::use::RS> RS( const T &input, hash<cocoa::use::RS> &my_hash = hash<cocoa::use::RS>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash JS( const T &input, hash my_hash = hash( 32, 0 ) ) {
-        return hash::JS( input, my_hash );
+    inline hash<cocoa::use::JS> JS( const T &input, hash<cocoa::use::JS> &my_hash = hash<cocoa::use::JS>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash PJW( const T &input, hash my_hash = hash( 32, 0 ) ) {
-        return hash::PJW( input, my_hash );
+    inline hash<cocoa::use::PJW> PJW( const T &input, hash<cocoa::use::PJW> &my_hash = hash<cocoa::use::PJW>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash ELF( const T &input, hash my_hash = hash( 32, 0 ) ) {
-        return hash::ELF( input, my_hash );
+    inline hash<cocoa::use::ELF> ELF( const T &input, hash<cocoa::use::ELF> &my_hash = hash<cocoa::use::ELF>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash BKDR( const T &input, hash my_hash = hash( 32, 0 ) ) {
-        return hash::BKDR( input, my_hash );
+    inline hash<cocoa::use::BKDR> BKDR( const T &input, hash<cocoa::use::BKDR> &my_hash = hash<cocoa::use::BKDR>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash SDBM( const T &input, hash my_hash = hash( 32, 0 ) ) {
-        return hash::SDBM( input, my_hash );
+    inline hash<cocoa::use::SDBM> SDBM( const T &input, hash<cocoa::use::SDBM> &my_hash = hash<cocoa::use::SDBM>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash DJB( const T &input, hash my_hash = hash( 32, 5381 ) ) {
-        return hash::DJB( input, my_hash );
+    inline hash<cocoa::use::DJB> DJB( const T &input, hash<cocoa::use::DJB> &my_hash = hash<cocoa::use::DJB>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash DJB2( const T &input, hash my_hash = hash( 32, 5381 ) ) {
-        return hash::DJB2( input, my_hash );
+    inline hash<cocoa::use::DJB2> DJB2( const T &input, hash<cocoa::use::DJB2> &my_hash = hash<cocoa::use::DJB2>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash BP( const T &input, hash my_hash = hash( 32, 0 ) ) {
-        return hash::BP( input, my_hash );
+    inline hash<cocoa::use::BP> BP( const T &input, hash<cocoa::use::BP> &my_hash = hash<cocoa::use::BP>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash FNV( const T &input, hash my_hash = hash( 32, 0x811C9DC5 ) ) {
-        return hash::FNV( input, my_hash );
+    inline hash<cocoa::use::FNV> FNV( const T &input, hash<cocoa::use::FNV> &my_hash = hash<cocoa::use::FNV>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash FNV1a( const T &input, hash my_hash = hash( 32, 0x811C9DC5 ) ) {
-        return hash::FNV1a( input, my_hash );
+    inline hash<cocoa::use::FNV1a> FNV1a( const T &input, hash<cocoa::use::FNV1a> &my_hash = hash<cocoa::use::FNV1a>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash AP( const T &input, hash my_hash = hash( 32, 0xAAAAAAAA ) ) {
-        return hash::AP( input, my_hash );
+    inline hash<cocoa::use::AP> AP( const T &input, hash<cocoa::use::AP> &my_hash = hash<cocoa::use::AP>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash BJ1( const T &input, hash my_hash = hash( 32, 0 ) ) {
-        return hash::BJ1( input, my_hash );
+    inline hash<cocoa::use::BJ1> BJ1( const T &input, hash<cocoa::use::BJ1> &my_hash = hash<cocoa::use::BJ1>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash MH2( const T &input, hash my_hash = hash( 32, 0 ) ) {
-        return hash::MH2( input, my_hash );
+    inline hash<cocoa::use::MH2> MH2( const T &input, hash<cocoa::use::MH2> &my_hash = hash<cocoa::use::MH2>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash SHA1( const T &input, hash my_hash = hash( 160, 0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0 ) ) {
-        return hash::SHA1( input, my_hash );
+    inline hash<cocoa::use::SHA1> SHA1( const T &input, hash<cocoa::use::SHA1> &my_hash = hash<cocoa::use::SHA1>() ) {
+        return my_hash( input );
     }
     template< typename T >
-    inline hash SFH( const T &input, hash my_hash = hash( 32, 0 ) ) {
-        return hash::SFH( input, my_hash );
+    inline hash<cocoa::use::SFH> SFH( const T &input, hash<cocoa::use::SFH> &my_hash = hash<cocoa::use::SFH>() ) {
+        return my_hash( input );
     }
 }
