@@ -188,9 +188,9 @@ namespace cocoa
             h = ~h;
 
             if( is_little_endian() )
-                return { ( h >> 32 ) & 0xFFFFFFFF, h & 0xFFFFFFFF };
+                return { basetype( ( h >> 32 ) & 0xFFFFFFFF ), basetype( h & 0xFFFFFFFF ) };
             else
-                return { h & 0xFFFFFFFF, ( h >> 32 ) & 0xFFFFFFFF };
+                return { basetype( h & 0xFFFFFFFF ), basetype( ( h >> 32 ) & 0xFFFFFFFF ) };
         }
 
         // Generalized CRC (less collisions), Bob Jenkins
@@ -606,7 +606,7 @@ namespace cocoa
         }
 
         // Mostly based on Paul E. Jones' sha1 implementation
-        static hash fSHA1( const void *pMem, basetype iLen, hash my_hash = hash{ 0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0 } )
+        static hash fSHA1( const void *pMem, size_t iLen, hash my_hash = hash{ 0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0 } )
         {
             // if( pMem == 0 || iLen == 0 ) return my_hash;
 
@@ -947,34 +947,42 @@ namespace cocoa
         // chain hasher
 
         template<typename T>
-        hash &operator()( const T &input ) {
-            return h = use::any( FN, h, input.data(), input.size() * sizeof( *input.begin() ) ), *this;
+        hash operator()( const T &input ) const {
+            hash self = *this;
+            return self.h = use::any( FN, self.h, input.data(), input.size() * sizeof( *input.begin() ) ), self;
         }
 
-        hash &operator()( const char *input = (const char *)0 ) {
-            return h = use::any( FN, h, input, input ? std::strlen(input) : 0 ), *this;
+        hash operator()( const char *input = (const char *)0 ) const {
+            hash self = *this;
+            return self.h = use::any( FN, self.h, input, input ? std::strlen(input) : 0 ), self;
         }
-        hash &operator()( const char &input ) {
-            return h = use::any( FN, h, &input, sizeof(input) ), *this;
+        hash operator()( const char &input ) const {
+            hash self = *this;
+            return self.h = use::any( FN, self.h, &input, sizeof(input) ), self;
         }
-        hash &operator()( const int &input ) {
-            return h = use::any( FN, h, &input, sizeof(input) ), *this;
+        hash operator()( const int &input ) const {
+            hash self = *this;
+            return self.h = use::any( FN, self.h, &input, sizeof(input) ), self;
         }
-        hash &operator()( const size_t &input ) {
-            return h = use::any( FN, h, &input, sizeof(input) ), *this;
+        hash operator()( const size_t &input ) const {
+            hash self = *this;
+            return self.h = use::any( FN, self.h, &input, sizeof(input) ), self;
         }
-        hash &operator()( const float &input ) {
-            return h = use::any( FN, h, &input, sizeof(input) ), *this;
+        hash operator()( const float &input ) const {
+            hash self = *this;
+            return self.h = use::any( FN, self.h, &input, sizeof(input) ), self;
         }
-        hash &operator()( const double &input ) {
-            return h = use::any( FN, h, &input, sizeof(input) ), *this;
+        hash operator()( const double &input ) const {
+            hash self = *this;
+            return self.h = use::any( FN, self.h, &input, sizeof(input) ), self;
         }
 
         template<typename T, typename... Args>
-        hash &operator()(const T &value, Args... args) {
-            this->operator()( value );
-            this->operator()(args...);
-            return *this;
+        hash operator()(const T &value, Args... args) const {
+            hash self = *this;
+            self.operator()( value );
+            self.operator()(args...);
+            return self;
         }
 
     };
@@ -983,79 +991,79 @@ namespace cocoa
 namespace cocoa
 {
     template< typename T >
-    inline hash<cocoa::use::CRC32> CRC32( const T &input, hash<cocoa::use::CRC32> &my_hash = hash<cocoa::use::CRC32>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::CRC32> CRC32( const T &input, const hash<cocoa::use::CRC32> &my_hash = hash<cocoa::use::CRC32>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::CRC64> CRC64( const T &input, hash<cocoa::use::CRC64> &my_hash = hash<cocoa::use::CRC64>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::CRC64> CRC64( const T &input, const hash<cocoa::use::CRC64> &my_hash = hash<cocoa::use::CRC64>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::GCRC> GCRC( const T &input, hash<cocoa::use::GCRC> &my_hash = hash<cocoa::use::GCRC>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::GCRC> GCRC( const T &input, const hash<cocoa::use::GCRC> &my_hash = hash<cocoa::use::GCRC>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::RS> RS( const T &input, hash<cocoa::use::RS> &my_hash = hash<cocoa::use::RS>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::RS> RS( const T &input, const hash<cocoa::use::RS> &my_hash = hash<cocoa::use::RS>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::JS> JS( const T &input, hash<cocoa::use::JS> &my_hash = hash<cocoa::use::JS>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::JS> JS( const T &input, const hash<cocoa::use::JS> &my_hash = hash<cocoa::use::JS>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::PJW> PJW( const T &input, hash<cocoa::use::PJW> &my_hash = hash<cocoa::use::PJW>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::PJW> PJW( const T &input, const hash<cocoa::use::PJW> &my_hash = hash<cocoa::use::PJW>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::ELF> ELF( const T &input, hash<cocoa::use::ELF> &my_hash = hash<cocoa::use::ELF>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::ELF> ELF( const T &input, const hash<cocoa::use::ELF> &my_hash = hash<cocoa::use::ELF>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::BKDR> BKDR( const T &input, hash<cocoa::use::BKDR> &my_hash = hash<cocoa::use::BKDR>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::BKDR> BKDR( const T &input, const hash<cocoa::use::BKDR> &my_hash = hash<cocoa::use::BKDR>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::SDBM> SDBM( const T &input, hash<cocoa::use::SDBM> &my_hash = hash<cocoa::use::SDBM>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::SDBM> SDBM( const T &input, const hash<cocoa::use::SDBM> &my_hash = hash<cocoa::use::SDBM>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::DJB> DJB( const T &input, hash<cocoa::use::DJB> &my_hash = hash<cocoa::use::DJB>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::DJB> DJB( const T &input, const hash<cocoa::use::DJB> &my_hash = hash<cocoa::use::DJB>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::DJB2> DJB2( const T &input, hash<cocoa::use::DJB2> &my_hash = hash<cocoa::use::DJB2>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::DJB2> DJB2( const T &input, const hash<cocoa::use::DJB2> &my_hash = hash<cocoa::use::DJB2>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::BP> BP( const T &input, hash<cocoa::use::BP> &my_hash = hash<cocoa::use::BP>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::BP> BP( const T &input, const hash<cocoa::use::BP> &my_hash = hash<cocoa::use::BP>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::FNV> FNV( const T &input, hash<cocoa::use::FNV> &my_hash = hash<cocoa::use::FNV>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::FNV> FNV( const T &input, const hash<cocoa::use::FNV> &my_hash = hash<cocoa::use::FNV>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::FNV1a> FNV1a( const T &input, hash<cocoa::use::FNV1a> &my_hash = hash<cocoa::use::FNV1a>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::FNV1a> FNV1a( const T &input, const hash<cocoa::use::FNV1a> &my_hash = hash<cocoa::use::FNV1a>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::AP> AP( const T &input, hash<cocoa::use::AP> &my_hash = hash<cocoa::use::AP>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::AP> AP( const T &input, const hash<cocoa::use::AP> &my_hash = hash<cocoa::use::AP>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::BJ1> BJ1( const T &input, hash<cocoa::use::BJ1> &my_hash = hash<cocoa::use::BJ1>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::BJ1> BJ1( const T &input, const hash<cocoa::use::BJ1> &my_hash = hash<cocoa::use::BJ1>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::MH2> MH2( const T &input, hash<cocoa::use::MH2> &my_hash = hash<cocoa::use::MH2>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::MH2> MH2( const T &input, const hash<cocoa::use::MH2> &my_hash = hash<cocoa::use::MH2>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::SHA1> SHA1( const T &input, hash<cocoa::use::SHA1> &my_hash = hash<cocoa::use::SHA1>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::SHA1> SHA1( const T &input, const hash<cocoa::use::SHA1> &my_hash = hash<cocoa::use::SHA1>() ) {
+        return my_hash.operator()( input );
     }
     template< typename T >
-    inline hash<cocoa::use::SFH> SFH( const T &input, hash<cocoa::use::SFH> &my_hash = hash<cocoa::use::SFH>() ) {
-        return my_hash( input );
+    inline hash<cocoa::use::SFH> SFH( const T &input, const hash<cocoa::use::SFH> &my_hash = hash<cocoa::use::SFH>() ) {
+        return my_hash.operator()( input );
     }
 }
