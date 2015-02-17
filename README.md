@@ -1,4 +1,4 @@
-cocoa
+cocoa <a href="https://travis-ci.org/r-lyeh/cocoa"><img src="https://api.travis-ci.org/r-lyeh/cocoa.svg?branch=master" align="right" /></a>
 =====
 
 - Cocoa is an uniform hashing library written in C++11.
