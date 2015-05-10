@@ -1,28 +1,10 @@
 /*
  * Cocoa, an amalgamation of hashing algorithms.
  * CRC32, CRC64, GCRC, RS, JS, PJW, ELF, BKDR, SBDM, DJB, DJB2, BP, FNV, FNV1a, AP, BJ1, MH2, SHA1, SFH
- * Copyright (c) 2010,2011,2012,2013,2014 Mario 'rlyeh' Rodriguez
+ * Copyright (c) 2010,2011,2012,2013,2014 Mario 'rlyeh' Rodriguez, zlib/libpng licensed
 
  * This source file is based on code from Arash Partow (http://www.partow.net)
  * plus the original and credited authors for each algorithm. Thanks everybody!
-
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
 
  * To do:
  * - add MD5
@@ -799,7 +781,7 @@ namespace cocoa
 
             return my_hash;
         }
- 
+
         // general interface
 
         static hash any( int FN, hash &h, const void *ptr, size_t len ) {

@@ -5,7 +5,7 @@ cocoa <a href="https://travis-ci.org/r-lyeh/cocoa"><img src="https://api.travis-
 - Cocoa provides interface for CRC32, CRC64, GCRC, RS, JS, PJW, ELF, BKDR, SBDM, DJB, DJB2, BP, FNV, FNV1a, AP, BJ1, MH2, SHA1, SFH.
 - Cocoa is tiny. Header-only.
 - Cocoa is cross-platform. No dependencies.
-- Cocoa is BOOST licensed.
+- Cocoa is zlib/libpng licensed.
 
 ### cocoa::hash() api
 - @todocument
