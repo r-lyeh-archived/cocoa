@@ -7,9 +7,6 @@ cocoa <a href="https://travis-ci.org/r-lyeh/cocoa"><img src="https://api.travis-
 - Cocoa is cross-platform. No dependencies.
 - Cocoa is zlib/libpng licensed.
 
-### cocoa::hash() api
-- @todocument
-
 ### Sample
 ```c++
 #include <cassert>
@@ -24,7 +21,7 @@ int main() {
 }
 ```
 
-### possible output
+### Possible output
 ---------------
 <pre>
 ~/cocoa>./test
@@ -32,8 +29,18 @@ int main() {
 ~/cocoa>
 </pre>
 
-### c++03
+### C++03
 Check old [c++03 version here](https://github.com/r-lyeh/cocoa/tree/c70a878eae074f73ae7f5222503538c130fd6a0d)
 
-### api
+### API
 For more details check the [tests.cxx](tests.cxx) file.
+
+### Cocoa::hash() API
+- @todocument
+
+### Changelog
+- v1.0.0 (2015/06/12)
+  - Removed warning
+- v0.0.0 (2010/xx/xx)
+  - Initial commit
+

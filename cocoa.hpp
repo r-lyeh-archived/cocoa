@@ -1,5 +1,4 @@
-/*
- * Cocoa, an amalgamation of hashing algorithms.
+/* Cocoa, an amalgamation of hashing algorithms.
  * CRC32, CRC64, GCRC, RS, JS, PJW, ELF, BKDR, SBDM, DJB, DJB2, BP, FNV, FNV1a, AP, BJ1, MH2, SHA1, SFH
  * Copyright (c) 2010,2011,2012,2013,2014 Mario 'rlyeh' Rodriguez, zlib/libpng licensed
 
@@ -28,6 +27,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
+#define COCOA_VERSION "1.0.0" /* (2015/06/12) Removed warnings
+#define COCOA_VERSION "0.0.0" // (2010/xx/xx) Initial commit */
 
 namespace cocoa
 {
@@ -487,7 +489,7 @@ namespace cocoa
             const basetype m = 0x5bd1e995;
             const int r = 24;
 
-            basetype h = my_hash[0] ^ iLen;
+            basetype h = my_hash[0] ^ ((basetype)iLen);
 
             const unsigned char *data = (const unsigned char *)pMem;
 
